@@ -30,6 +30,9 @@ Sobre estos conjuntos de datos se entrenan y evaluan tres modelos supervisados: 
 6. `06_Comparacion_Modelos.ipynb`
    Resume y compara los resultados finales de Naive Bayes, CART y kNN. Permite identificar que combinacion de modelo y atributos obtiene el mejor rendimiento global.
 
+7. `07_modelo_final.ipynb`
+   Reconstruye el modelo final seleccionado, Naive Bayes con atributos originales y metricas relacionales combinadas. Muestra sus parametros principales y el rendimiento final obtenido.
+
 ## Datos utilizados
 
 El proyecto utiliza el dataset Cora, formado por articulos cientificos, atributos binarios de palabras y relaciones de citacion entre articulos.
@@ -55,8 +58,9 @@ Para reproducir el trabajo completo, ejecutar los notebooks en este orden:
 4. `notebooks/04_cart.ipynb`
 5. `notebooks/05_KNN.ipynb`
 6. `notebooks/06_Comparacion_Modelos.ipynb`
+7. `notebooks/07_modelo_final.ipynb`
 
-Los notebooks 03, 04, 05 y 06 dependen de los ficheros procesados generados en los notebooks anteriores.
+Los notebooks 03, 04, 05, 06 y 07 dependen de los ficheros procesados generados en los notebooks anteriores.
 
 ## Resultados principales
 
