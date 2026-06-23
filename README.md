@@ -1,73 +1,169 @@
-# Aprendizaje automatico relacional sobre Cora
+# Relational Machine Learning on the Cora Citation Network
 
-Este repositorio contiene el desarrollo de un proyecto de aprendizaje automatico relacional aplicado al dataset Cora. El objetivo principal es estudiar si la informacion estructural del grafo de citaciones ayuda a clasificar articulos cientificos en sus distintas categorias tematicas.
+This repository contains an academic machine learning project developed by **Enrique Julio Purcell Cichy** and **Jose Antonio Reina Navarro**.
 
-Para ello se comparan tres tipos de atributos:
+The goal of the project is to study whether the structure of a citation graph can help classify scientific papers by topic. We work with the **Cora dataset**, where each paper has textual attributes and citation links to other papers. Instead of using only the original word features, we build a graph and extract relational metrics with **NetworkX**, then use those metrics as features for classical predictive models in **scikit-learn**.
 
-- Atributos originales del dataset Cora, correspondientes a la presencia o ausencia de palabras en cada articulo.
-- Metricas relacionales calculadas a partir del grafo de citaciones.
-- Combinacion de atributos originales y metricas relacionales.
+The models used here are intentionally foundational: **Naive Bayes**, **CART decision trees** and **k-nearest neighbors**. The interesting part of the project is not model complexity, but the full pipeline: data processing, graph construction, relational feature engineering, model comparison and interpretation.
 
-Sobre estos conjuntos de datos se entrenan y evaluan tres modelos supervisados: Naive Bayes, CART y kNN.
+## Project Summary
 
-## Descripcion de los notebooks
+We compare three feature scenarios:
 
-1. `01_exploracion_cora.ipynb`
-   Realiza la carga inicial de Cora, analiza la distribucion de clases, comprueba la consistencia de los datos y construye una primera representacion del grafo de citaciones.
+1. **Original attributes**: binary word indicators from the Cora dataset.
+2. **Relational metrics**: graph-based features extracted from the citation network.
+3. **Combined features**: original word attributes plus relational graph metrics.
 
-2. `02_metricas_relacionales.ipynb`
-   Calcula las metricas relacionales del grafo: grado, centralidad de grado, betweenness centrality, closeness centrality, clustering coefficient, PageRank y comunidades Louvain. Estas metricas se guardan en `data/processed/cora_metricas_relacionales.csv`.
+The relational metrics include:
 
-3. `03_naive_bayes.ipynb`
-   Entrena y evalua modelos Naive Bayes con atributos originales, metricas relacionales y atributos combinados. Incluye comparacion entre modelos base y modelos optimizados mediante `Pipeline` y `GridSearchCV`.
+- degree
+- degree centrality
+- betweenness centrality
+- closeness centrality
+- clustering coefficient
+- PageRank
+- Louvain community detection
 
-4. `04_cart.ipynb`
-   Entrena y evalua arboles de decision CART en los tres escenarios de atributos. Incluye validacion cruzada, optimizacion de hiperparametros, matrices de confusion e interpretacion mediante importancia de variables.
+The final objective is to evaluate whether adding graph information improves node classification.
 
-5. `05_KNN.ipynb`
-   Aplica kNN sobre los tres conjuntos de atributos. Como kNN depende de distancias, se normalizan las variables numericas y se codifica la comunidad Louvain cuando es necesario. Tambien se realiza optimizacion con `GridSearchCV`.
+## Dataset
 
-6. `06_Comparacion_Modelos.ipynb`
-   Resume y compara los resultados finales de Naive Bayes, CART y kNN. Permite identificar que combinacion de modelo y atributos obtiene el mejor rendimiento global.
+The project uses the public **Cora citation dataset** from LINQS.
 
-7. `07_modelo_final.ipynb`
-   Reconstruye el modelo final seleccionado, Naive Bayes con atributos originales y metricas relacionales combinadas. Muestra sus parametros principales y el rendimiento final obtenido.
+Basic dataset information:
 
-## Datos utilizados
+- **2708** scientific papers
+- **1433** binary word attributes
+- **7** topic classes
+- **5429** citation relationships
 
-El proyecto utiliza el dataset Cora, formado por articulos cientificos, atributos binarios de palabras y relaciones de citacion entre articulos.
+Each paper is represented as a node, and each citation is represented as a directed edge.
 
-Los ficheros originales se encuentran en:
+## Methodology
 
-- `data/raw/cora.content`
-- `data/raw/cora.cites`
+The workflow is organized as follows:
 
-Los ficheros procesados generados durante el trabajo se encuentran en:
+1. Load and clean the Cora content and citation files.
+2. Build a directed citation graph with NetworkX.
+3. Build an undirected version of the graph for metrics where edge direction is not relevant.
+4. Compute relational graph metrics.
+5. Build three feature sets: original, relational and combined.
+6. Train and evaluate Naive Bayes, CART and kNN.
+7. Use `Pipeline`, `ColumnTransformer`, cross-validation and `GridSearchCV` where appropriate.
+8. Compare base and optimized models.
+9. Select the best final model.
 
-- `data/processed/cora_content_procesado.csv`
-- `data/processed/cora_cites_procesado.csv`
-- `data/processed/cora_metricas_relacionales.csv`
+Some preprocessing decisions:
 
-## Orden de ejecucion recomendado
+- `KBinsDiscretizer` is used to discretize continuous graph metrics for `CategoricalNB`.
+- `MinMaxScaler` is used for kNN because distance-based models are sensitive to feature scale.
+- `OneHotEncoder` is used for Louvain communities in CART and kNN, since community IDs are categorical and not ordinal.
+- PageRank is computed on the directed graph.
+- Clustering coefficient and Louvain communities are computed on the undirected graph.
 
-Para reproducir el trabajo completo, ejecutar los notebooks en este orden:
+## Models
 
-1. `notebooks/01_exploracion_cora.ipynb`
-2. `notebooks/02_metricas_relacionales.ipynb`
-3. `notebooks/03_naive_bayes.ipynb`
-4. `notebooks/04_cart.ipynb`
-5. `notebooks/05_KNN.ipynb`
-6. `notebooks/06_Comparacion_Modelos.ipynb`
-7. `notebooks/07_modelo_final.ipynb`
+| Model | Purpose |
+|---|---|
+| Naive Bayes | Strong baseline for discrete high-dimensional data |
+| CART | Interpretable decision tree model |
+| kNN | Distance-based classifier to test structural similarity between papers |
 
-Los notebooks 03, 04, 05, 06 y 07 dependen de los ficheros procesados generados en los notebooks anteriores.
+## Main Results
 
-## Resultados principales
+Final comparison using optimized models:
 
-Los experimentos muestran que las metricas relacionales aportan informacion util para la clasificacion de articulos. En particular:
+| Feature set | Naive Bayes | CART | kNN |
+|---|---:|---:|---:|
+| Original word attributes | 0.7583 | 0.6384 | 0.4760 |
+| Relational metrics | 0.7509 | 0.7159 | 0.7343 |
+| Combined features | 0.8044 | 0.7638 | 0.6679 |
 
-- Naive Bayes obtiene su mejor resultado al combinar atributos originales y metricas relacionales.
-- CART aprovecha especialmente la variable de comunidad Louvain, que resume informacion estructural del grafo.
-- kNN obtiene mejores resultados con las metricas relacionales que con los atributos textuales originales, ya que trabaja mejor en un espacio de menor dimensionalidad y correctamente normalizado.
+The best absolute result was obtained by the **base Naive Bayes model with combined features**:
 
-El mejor modelo global es Naive Bayes con atributos originales y metricas relacionales combinadas.
+```text
+Accuracy: 0.8063
+Model: CategoricalNB
+Features: original word attributes + relational graph metrics
+```
+
+![Optimized model comparison](reports/comparacion_accuracy_optimizado.png)
+
+## Key Takeaways
+
+- Relational graph metrics contain useful predictive information for classifying papers.
+- Naive Bayes benefits the most from combining textual and graph-based features.
+- kNN performs much better with relational metrics than with the original high-dimensional word attributes.
+- CART provides useful interpretability, especially through the Louvain community feature.
+- The project shows how classical ML models can be strengthened with graph-based feature engineering.
+
+## Repository Guide
+
+The notebooks are ordered according to the project workflow:
+
+1. `notebooks/01_exploracion_cora.ipynb`  
+   Initial dataset exploration and graph construction.
+
+2. `notebooks/02_metricas_relacionales.ipynb`  
+   Computation of graph metrics such as centrality, clustering, PageRank and Louvain communities.
+
+3. `notebooks/03_naive_bayes.ipynb`  
+   Naive Bayes training, evaluation and hyperparameter search.
+
+4. `notebooks/04_cart.ipynb`  
+   CART decision tree models, feature importance and tree visualization.
+
+5. `notebooks/05_KNN.ipynb`  
+   kNN models with scaling, encoding and hyperparameter search.
+
+6. `notebooks/06_Comparacion_Modelos.ipynb`  
+   Global comparison of all models and feature scenarios.
+
+7. `notebooks/07_modelo_final.ipynb`  
+   Reconstruction and evaluation of the selected final model.
+
+## Repository Structure
+
+```text
+data/
+  raw/              Original Cora files
+  processed/        Processed content, citations and relational metrics
+
+notebooks/          Full analysis and modeling workflow
+reports/            Generated plots, trees and comparison figures
+slides/             Presentation material and project notes
+src/                Helper scripts used during project preparation
+```
+
+## How to Run
+
+Create a Python environment and install the dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Then run the notebooks in order:
+
+```text
+01 -> 02 -> 03 -> 04 -> 05 -> 06 -> 07
+```
+
+The later notebooks depend on the processed files generated by the earlier ones.
+
+## Tech Stack
+
+- Python
+- pandas
+- NumPy
+- NetworkX
+- scikit-learn
+- python-louvain
+- matplotlib
+- seaborn
+- Jupyter Notebook
+
+## Scope
+
+This is an academic project focused on understanding the full process of relational machine learning with graph-derived features. The models are simple by design, but they provide a solid foundation for more advanced graph learning approaches such as node embeddings or graph neural networks.
+
